@@ -403,7 +403,7 @@ class CakeEmailTest extends CakeTestCase {
 		$this->assertSame($this->CakeEmail->subject(), '1');
 
 		$this->CakeEmail->subject('هذه رسالة بعنوان طويل مرسل للمستلم');
-		$expected = '=?UTF-8?B?2YfYsNmHINix2LPYp9mE2Kkg2KjYudmG2YjYp9mGINi32YjZitmEINmF2LE=?=' . "\r\n" . ' =?UTF-8?B?2LPZhCDZhNmE2YXYs9iq2YTZhQ==?=';
+		$expected = 'هذه رسالة بعنوان طويل مرسل للمستلم';
 		$this->assertSame($this->CakeEmail->subject(), $expected);
 	}
 
@@ -418,14 +418,90 @@ class CakeEmailTest extends CakeTestCase {
 
 		$this->CakeEmail->headerCharset = 'ISO-2022-JP';
 		$this->CakeEmail->subject('日本語のSubjectにも対応するよ');
-		$expected = '=?ISO-2022-JP?B?GyRCRnxLXDhsJE4bKEJTdWJqZWN0GyRCJEskYkJQMX4kOSRrJGgbKEI=?=';
+		$expected = '日本語のSubjectにも対応するよ';
 		$this->assertSame($this->CakeEmail->subject(), $expected);
 
 		$this->CakeEmail->subject('長い長い長いSubjectの場合はfoldingするのが正しいんだけどいったいどうなるんだろう？');
+		$expected = '長い長い長いSubjectの場合はfoldingするのが正しいんだけどいったいどうなるんだろう？';
+		$this->assertSame($this->CakeEmail->subject(), $expected);
+	}
+
+/**
+ * testSubjectAndHeaderCharsetPosition
+ *
+ * @return void
+ */
+	public function testSubjectInSendContents() {
+		$this->CakeEmail->transport('Debug');
+		$this->CakeEmail->from('someone@example.com');
+		$this->CakeEmail->to('someone@example.com');
+		$this->CakeEmail->subject('هذه رسالة بعنوان طويل مرسل للمستلم');
+		$contents = $this->CakeEmail->send('test mail');
+	
+		$expected = '=?UTF-8?B?2YfYsNmHINix2LPYp9mE2Kkg2KjYudmG2YjYp9mGINi32YjZitmEINmF2LE=?=' . "\r\n" . ' =?UTF-8?B?2LPZhCDZhNmE2YXYs9iq2YTZhQ==?=';
+		$this->assertContains($expected, $contents['headers']);
+	}
+
+/**
+ * testSubjectAndHeaderCharsetPosition
+ *
+ * @return void
+ */
+	public function testSubjectJapaneseInSendContents() {
+		$this->skipIf(!function_exists('mb_convert_encoding'));
+		mb_internal_encoding('UTF-8');
+
+		$this->CakeEmail->reset();
+		$this->CakeEmail->transport('Debug');
+		$this->CakeEmail->headerCharset = 'ISO-2022-JP';
+		$this->CakeEmail->from('someone@example.jp');
+		$this->CakeEmail->to('someone@example.jp');
+		$this->CakeEmail->subject('日本語のSubjectにも対応するよ');
+		$contents = $this->CakeEmail->send('test mail');
+
+		$expected = '=?ISO-2022-JP?B?GyRCRnxLXDhsJE4bKEJTdWJqZWN0GyRCJEskYkJQMX4kOSRrJGgbKEI=?=';
+		$this->assertContains($expected, $contents['headers']);
+
+		$this->CakeEmail->reset();
+		$this->CakeEmail->transport('Debug');
+		$this->CakeEmail->headerCharset = 'ISO-2022-JP';
+		$this->CakeEmail->from('someone@example.jp');
+		$this->CakeEmail->to('someone@example.jp');
+		$this->CakeEmail->subject('長い長い長いSubjectの場合はfoldingするのが正しいんだけどいったいどうなるんだろう？');
+		$contents = $this->CakeEmail->send('test mail');
+
 		$expected = "=?ISO-2022-JP?B?GyRCRDkkJEQ5JCREOSQkGyhCU3ViamVjdBskQiROPmw5ZyRPGyhCZm9s?=\r\n" .
 			" =?ISO-2022-JP?B?ZGluZxskQiQ5JGskTiQsQDUkNyQkJHMkQCQxJEkkJCRDJD8kJCRJGyhC?=\r\n" .
 			" =?ISO-2022-JP?B?GyRCJCYkSiRrJHMkQCRtJCYhKRsoQg==?=";
-		$this->assertSame($this->CakeEmail->subject(), $expected);
+		$this->assertContains($expected, $contents['headers'], $contents['headers']);
+	}
+
+/**
+ * testSubjectAndHeaderCharsetPosition
+ *
+ * @return void
+ */
+	public function testSubjectAndHeaderCharsetPosition() {
+		$this->skipIf(!function_exists('mb_convert_encoding'));
+		mb_internal_encoding('UTF-8');
+
+		$this->CakeEmail->reset();
+		$this->CakeEmail->transport('Debug');
+		$this->CakeEmail->headerCharset = 'ISO-2022-JP';
+		$this->CakeEmail->from('suzuki@example.com', 'すずき');
+		$this->CakeEmail->to('suzuki@example.com');
+		$this->CakeEmail->subject('テストメール');
+		$result = $this->CakeEmail->send('test');
+		$this->assertContains('=?ISO-2022-JP?B?GyRCJUYlOSVIJWEhPCVrGyhC?=', $result['headers']);
+
+		$this->CakeEmail->reset();
+		$this->CakeEmail->transport('Debug');
+		$this->CakeEmail->from('suzuki@example.com', 'すずき');
+		$this->CakeEmail->to('suzuki@example.com');
+		$this->CakeEmail->subject('テストメール');
+		$this->CakeEmail->headerCharset = 'ISO-2022-JP';
+		$result = $this->CakeEmail->send('test');
+		$this->assertContains('=?ISO-2022-JP?B?GyRCJUYlOSVIJWEhPCVrGyhC?=', $result['headers']);
 	}
 
 /**

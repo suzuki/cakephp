@@ -595,7 +595,7 @@ class CakeEmail {
 		if ($subject === null) {
 			return $this->_subject;
 		}
-		$this->_subject = $this->_encode((string)$subject);
+		$this->_subject = (string)$subject;
 		return $this;
 	}
 
@@ -697,7 +697,7 @@ class CakeEmail {
 		}
 
 		if ($include['subject']) {
-			$headers['Subject'] = $this->_subject;
+			$headers['Subject'] = $this->_encode((string)$this->_subject);
 		}
 
 		$headers['MIME-Version'] = '1.0';
