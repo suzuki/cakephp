@@ -473,7 +473,7 @@ class CakeEmailTest extends CakeTestCase {
 		$expected = "=?ISO-2022-JP?B?GyRCRDkkJEQ5JCREOSQkGyhCU3ViamVjdBskQiROPmw5ZyRPGyhCZm9s?=\r\n" .
 			" =?ISO-2022-JP?B?ZGluZxskQiQ5JGskTiQsQDUkNyQkJHMkQCQxJEkkJCRDJD8kJCRJGyhC?=\r\n" .
 			" =?ISO-2022-JP?B?GyRCJCYkSiRrJHMkQCRtJCYhKRsoQg==?=";
-		$this->assertContains($expected, $contents['headers'], $contents['headers']);
+		$this->assertContains($expected, $contents['headers']);
 	}
 
 /**
